@@ -127,7 +127,7 @@ Different guidelines exist for different types of pull requests (PRs):
   - `server/monitor-types/MONITORING_TYPE.js` is the core of each monitor.
     the `async check(...)`-function should:
     - throw an error for each fault that is detected with an actionable error message
-    - in the happy-path, you should set `heartbeat.msg` to a successfull message and set `heartbeat.status = UP`
+    - in the happy-path, you should set `heartbeat.msg` to a successful message and set `heartbeat.status = UP`
   - `server/uptime-kuma-server.js` is where the monitoring backend needs to be registered.
     *If you have an idea how we can skip this step, we would love to hear about it ^^*
   - `src/pages/EditMonitor.vue` is the shared frontend users interact with.
@@ -230,17 +230,11 @@ The goal is to make the Uptime Kuma installation as easy as installing a mobile 
 
 ## Tools
 
-- [`Node.js`](https://nodejs.org/) >= 14
-- [`npm`](https://www.npmjs.com/) >= 8.5
+- [`Node.js`](https://nodejs.org/) >= 18
+- [`npm`](https://www.npmjs.com/) >= 9.3
 - [`git`](https://git-scm.com/)
 - IDE that supports [`ESLint`](https://eslint.org/) and EditorConfig (I am using [`IntelliJ IDEA`](https://www.jetbrains.com/idea/))
 - A SQLite GUI tool (f.ex. [`SQLite Expert Personal`](https://www.sqliteexpert.com/download.html) or [`DBeaver Community`](https://dbeaver.io/download/))
-
-### GitHub Codespaces
-
-If you don't want to setup an local environment, you can now develop on GitHub Codespaces, read more:
-
-https://github.com/louislam/uptime-kuma/tree/master/.devcontainer
 
 ## Git Branches
 
@@ -427,7 +421,33 @@ Currently, there are 3 maintainers:
 ### Procedures
 
 We have a few procedures we follow. These are documented here:
+- <details><summary>Set up a Docker Builder</summary>
+  <p>
 
+  - amd64, armv7 using local.
+  - arm64 using remote arm64 cpu, as the emulator is too slow and can no longer pass the `npm ci` command.
+     1. Add the public key to the remote server.
+     2. Add the remote context. The remote machine must be arm64 and installed Docker CE. 
+        ```
+        docker context create oracle-arm64-jp --docker "host=ssh://root@100.107.174.88"
+        ```
+     3. Create a new builder.
+        ```
+        docker buildx create --name kuma-builder --platform linux/amd64,linux/arm/v7
+        docker buildx use kuma-builder
+        docker buildx inspect --bootstrap
+        ```
+     4. Append the remote context to the builder.
+        ```
+        docker buildx create --append --name kuma-builder --platform linux/arm64 oracle-arm64-jp
+        ```
+     5. Verify the builder and check if the builder is using `kuma-builder`.
+        ```
+        docker buildx inspect kuma-builder
+        docker buildx ls
+        ```
+  </p>
+  </details>
 - <details><summary>Release</summary>
   <p>
 
